@@ -2939,7 +2939,7 @@ local GLOBAL_ENV = getgenv and getgenv() or _G or shared
 --- @field DecompileJobless boolean -- Includes already decompiled code in the output. No new scripts are decompiled. ___Default:___ false
 --- @field SaveBytecode boolean -- Includes bytecode in the output. Useful if you wish to be able to decompile it yourself later. ___Default:___ false
 --- .DecompileIgnore {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name}} -- * Ignores match & it's descendants by default. To Ignore only the instance itself set the value to `= false`. Examples: "Chat", - Matches any instance with "Chat" ClassName, Players = {"MyPlayerName"} - Matches "Players" Class AND "MyPlayerName" Name ONLY, `workspace` - matches Instance by reference, `[workspace] = false` - matches Instance by reference and only ignores the instance itself and not it's descendants. ___Default:___ {TextChatService}
---- .IgnoreList {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name}} -- Structure is similar to **@DecompileIgnore** except `= false` meaning save the instance but ignore it's descendants. ___Default:___ {CoreGui, CorePackages}
+--- .IgnoreList {Instance | Instance.ClassName | [Instance.ClassName] = {Instance.Name | false}} -- Structure is similar to **@DecompileIgnore** except `= false` meaning save the instance but ignore it's descendants (metadata-only). Supports both instance references and ClassName strings. Examples: `"CoreGui"` = skip entirely, `CorePackages = false` = serialize node but skip children, `Players = {"SomePlayer"}` = skip specific named instance. ___Default:___ {CoreGui, CorePackages = false, Packages = false, Virtualized = false}
 --- .ExtraInstances {Instance} -- If used with any invalid mode (like "invalidmode") it will only save these instances. ___Default:___ {}
 --- @field IgnoreProperties table -- Ignores properties by Name. ___Default:___ {}
 --- @field SaveCacheInterval number -- The less the value the more often it saves, but that would mean less performance due to constantly saving. ___Default:___ 0x1600 * 10
@@ -3062,7 +3062,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 		IgnoreProperties = {},
 
-		IgnoreList = { "CoreGui", "CorePackages" },
+		IgnoreList = { "CoreGui", CorePackages = false, Packages = false, Virtualized = false },
 
 		ExtraInstances = {},
 		NilInstances = false,
@@ -4083,8 +4083,12 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 				do
 					local OnIgnoredList = IgnoreList[ClassName]
-					if OnIgnoredList and (OnIgnoredList == true or OnIgnoredList[InstanceName]) then
-						continue
+					if OnIgnoredList ~= nil then
+						if OnIgnoredList == true or (type(OnIgnoredList) == "table" and OnIgnoredList[InstanceName]) then
+							continue
+						elseif OnIgnoredList == false then
+							SkipEntirely = false -- Serialize instance, but do NOT recurse children (metadata-only)
+						end
 					end
 				end
 
