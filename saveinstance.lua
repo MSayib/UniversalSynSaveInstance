@@ -4569,6 +4569,11 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			-- ? <External>null</External><External>nil</External>  - <External> is a legacy concept that is no longer used.
 		]]
 				header = header .. '<Meta name="ExplicitAutoJoints">true</Meta>'
+				if not IsModel then
+					header = header .. '<Meta name="ClientVersion">' .. tostring(FULL_VERSION) .. '</Meta>'
+					header = header .. '<Meta name="PlaceId">' .. tostring(game.PlaceId) .. '</Meta>'
+					header = header .. '<Meta name="PlaceVersion">' .. tostring(game.PlaceVersion) .. '</Meta>'
+				end
 			end
 			if writefile and not OPTIONS.Callback then
 				writefile(placename, header) -- TODO This is sort of useless if writefile will be used at the end (like if AlternativeWritefile and Callback are unused)
