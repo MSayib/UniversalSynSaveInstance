@@ -3888,7 +3888,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		local inputLower = string.lower(input)
 		search = string.lower(search)
 
-		if not string_find(input, search) then
+		if not string_find(inputLower, search) then
 			return input
 		end
 
@@ -4122,9 +4122,13 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 					do
 						local OnIgnoredList = IgnoreList[ClassName]
-						if OnIgnoredList and (OnIgnoredList == true or OnIgnoredList[InstanceName]) then
-							__DARKLUA_CONTINUE_87 = true
-							break
+						if OnIgnoredList ~= nil then
+							if OnIgnoredList == false then
+								SkipEntirely = false
+							elseif OnIgnoredList == true or (type(OnIgnoredList) == "table" and OnIgnoredList[InstanceName]) then
+								__DARKLUA_CONTINUE_87 = true
+								break
+							end
 						end
 					end
 
