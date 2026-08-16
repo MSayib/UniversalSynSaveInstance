@@ -4567,6 +4567,38 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				header = header .. '<Meta name="ClientVersion">' .. tostring(FULL_VERSION) .. '</Meta>'
 				header = header .. '<Meta name="PlaceId">' .. tostring(game.PlaceId) .. '</Meta>'
 				header = header .. '<Meta name="PlaceVersion">' .. tostring(game.PlaceVersion) .. '</Meta>'
+
+				-- In-Engine Opcode Probe: if executor provides a compiler function, compile canonical probes
+				local compiler = (type(luau_compile) == "function" and luau_compile)
+					or (type(compile) == "function" and compile)
+					or (type(crypt) == "table" and type(crypt.compile) == "function" and crypt.compile)
+				if compiler then
+					local p_ok, p_res = pcall(function()
+						local compiled_map = {}
+						local probes = {
+							p01_arith = "local function f(a,b) return a+b, a-b, a*b, a/b, a%b, a^b, a//b end return f",
+							p02_arithk = "local function f(a) return a+3, a-3, a*3, a/3, a%3, a^3, a//3, 3-a, 3/a end return f",
+							p03_unary = "local function f(x) return not x, -x, #x end return f",
+							p04_load = "local function f(x) local a=nil; local b=true; local c=false; local d=7; local e='str'; local g=x; return a,b,c,d,e,g end return f",
+							p05_global = "local function f(v) ProbeSlot=v return ProbeSlot end return f",
+							p06_branch = "local function f(a,b,s) if a<b then s.n=1 end if a<=b then s.n=2 end if a==b then s.n=3 end return s end return f",
+							p08_logic = "local function f(a,b) return a and b, a or b, a and 5, a or 5 end return f",
+							p09_table = "local function f(x) local t={alpha=1, beta=2}; t[x]=x; return t.field, t[3] end return f",
+							p10_loop = "local function f(n,s) for i=1,n do s=s+i end for k,v in pairs(s) do n=n+1 end return s,n end return f",
+							p11_closure = "local function f() local n=0 return function() n=n+1 return n end end return f",
+						}
+						for name, src in pairs(probes) do
+							local c_ok, bc = pcall(compiler, src)
+							if c_ok and bc and bc ~= "" then
+								compiled_map[name] = base64encode(bc)
+							end
+						end
+						return service.HttpService:JSONEncode(compiled_map)
+					end)
+					if p_ok and p_res and p_res ~= "" and p_res ~= "{}" then
+						header = header .. '<Meta name="OpcodeProbe">' .. p_res .. '</Meta>'
+					end
+				end
 			end
 			if writefile and not OPTIONS.Callback then
 				writefile(placename, header) -- TODO This is sort of useless if writefile will be used at the end (like if AlternativeWritefile and Callback are unused)
