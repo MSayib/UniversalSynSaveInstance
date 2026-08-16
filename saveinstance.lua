@@ -3067,7 +3067,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 	local OPTIONS = {
 		mode = "optimized",
-		Decompile = true,
+		Decompile = false, -- Legacy in-engine decompiler retired in favor of Zypher offline lifter
 		scriptcache = true,
 		-- decomptype = "",
 		DecompileTimeout = 10,
@@ -3087,7 +3087,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			ModuleScript = nil,
 		},
 		IgnoreDefaultPlayerScripts = true,
-		SaveBytecode = false,
+		SaveBytecode = true, -- Capture exact Base64 Luau bytecode for Zypher high-fidelity decompilation
 
 		IgnoreProperties = {},
 
