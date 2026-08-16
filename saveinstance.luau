@@ -4504,18 +4504,11 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 	local function save_game()
 		do
-			if IsModel then
-				--[[
-			-- ? Roblox encodes the following additional attributes. These are not required. Moreover, any defined schemas are ignored, and not required for a file to be valid: xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd"
-			Also http can be converted to https but not sure if Roblox cares
-			-- ? <External>null</External><External>nil</External>  - <External> is a legacy concept that is no longer used.
-		]]
+			if not IsModel then
 				header ..= '<Meta name="ExplicitAutoJoints">true</Meta>'
-				if not IsModel then
-					header ..= `<Meta name="ClientVersion">{FULL_VERSION}</Meta>`
-					header ..= `<Meta name="PlaceId">{game.PlaceId}</Meta>`
-					header ..= `<Meta name="PlaceVersion">{game.PlaceVersion}</Meta>`
-				end
+				header ..= `<Meta name="ClientVersion">{FULL_VERSION}</Meta>`
+				header ..= `<Meta name="PlaceId">{game.PlaceId}</Meta>`
+				header ..= `<Meta name="PlaceVersion">{game.PlaceVersion}</Meta>`
 			end
 			if writefile and not OPTIONS.Callback then
 				writefile(placename, header) -- TODO This is sort of useless if writefile will be used at the end (like if AlternativeWritefile and Callback are unused)
